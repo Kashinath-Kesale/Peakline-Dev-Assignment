@@ -1,5 +1,3 @@
-# 📦 **GitHub Repository Description (for README)**
-
 # 📚 Book Library – Bug Fix & Improvement Assignment
 
 This repository contains my completed assignment for Peakline Technologies.
