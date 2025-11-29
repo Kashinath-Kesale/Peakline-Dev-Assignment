@@ -38,10 +38,10 @@
   {
     "id": 4,
     "title": "Pride and Prejudice",
-    "author": "Jane Austen",
+    "author": "Sir. Jane Austen",
     "year": 1813,
     "genre": "Romance",
-    "available": true,
+    "available": false,
     "publisher": {
       "name": "T. Egerton",
       "location": "London"
@@ -49,14 +49,26 @@
   },
   {
     "id": 5,
-    "title": "The Catcher in the Rye",
-    "author": "J.D. Salinger",
-    "year": 1951,
-    "genre": "Fiction",
-    "available": false,
+    "title": "Atomic Habits",
+    "author": "James Clear",
+    "year": 2016,
+    "genre": "Uncategorized",
+    "available": true,
     "publisher": {
-      "name": "Little, Brown",
-      "location": "Boston"
+      "name": "Penguin",
+      "location": "New York"
+    }
+  },
+  {
+    "id": 6,
+    "title": "The Psychology of Money",
+    "author": "Morgan Housel",
+    "year": 2019,
+    "genre": "Uncategorized",
+    "available": true,
+    "publisher": {
+      "name": "Jaico Publishing House",
+      "location": "UK"
     }
   }
 ]

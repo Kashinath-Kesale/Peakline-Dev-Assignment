@@ -20,9 +20,9 @@ function App() {
       
       const response = await fetch(url);
       const data = await response.json();
-      
-      setBooks(data?.books);
-      updateStats(data.books);
+
+      setBooks(data?.books || []);
+      updateStats(data.books || []);
       setError(null);
     } catch (err) {
       setError('Failed to load books. Please try again.');
@@ -32,10 +32,11 @@ function App() {
   };
 
   const updateStats = (booksList) => {
-    const available = booksList.filter(book => book.available === true);
+    const available = booksList.filter(book => book.available === true).length;
+
     setStats({
-      total: available.length,
-      available: available.length
+      total: booksList.length,
+      available,
     });
   };
 
@@ -92,9 +93,7 @@ function App() {
   };
 
   const handleDeleteBook = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this book?')) {
-      return;
-    }
+    if (!window.confirm('Are you sure you want to delete this book?')) return;
 
     try {
       const response = await fetch(`/api/books/${id}`, {
@@ -125,7 +124,6 @@ function App() {
 
   const handleEdit = async (book) => {
     try {
-      // Fetch fresh book data before editing
       const response = await fetch(`/api/books/${book.id}`);
       if (response.ok) {
         const freshBook = await response.json();
@@ -147,6 +145,7 @@ function App() {
       <header className="app-header">
         <h1>📚 Book Library</h1>
         <p>Manage your book collection with ease</p>
+
         <div className="stats">
           <div className="stat-item">
             <div className="stat-number">{stats.total}</div>
@@ -186,4 +185,3 @@ function App() {
 }
 
 export default App;
-

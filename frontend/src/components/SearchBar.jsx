@@ -5,11 +5,11 @@ function SearchBar({ onSearch }) {
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      onSearch(inputValue);
-    }, 300);
+      onSearch(inputValue.trim());
+    }, 400);
 
     return () => clearTimeout(timeoutId);
-  }, [inputValue]);
+  }, [inputValue]);   
 
   const handleChange = (e) => {
     setInputValue(e.target.value);
@@ -28,4 +28,3 @@ function SearchBar({ onSearch }) {
 }
 
 export default SearchBar;
-

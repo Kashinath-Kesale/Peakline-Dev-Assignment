@@ -20,14 +20,19 @@ const writeBooks = (books) => {
 router.get('/', (req, res) => {
   try {
     let books = readBooks();
-    const { search, page = 1, limit = 10 } = req.query;
+    let { search, page = 1, limit = 10 } = req.query;
 
-    // Filter by search term (searches in title and author)
+    // Normalize pagination params
+    page = parseInt(page, 10) || 1;
+    limit = parseInt(limit, 10) || 10;
+
+    // Filter by search term (searches in title OR author)
     if (search) {
       const searchLower = search.toLowerCase();
-      books = books.filter(book => 
-        book.title.toLowerCase().includes(searchLower) &&
-        book.author.toLowerCase().includes(searchLower)
+      books = books.filter(
+        (book) =>
+          book.title.toLowerCase().includes(searchLower) ||
+          book.author.toLowerCase().includes(searchLower)
       );
     }
 
@@ -39,10 +44,11 @@ router.get('/', (req, res) => {
     res.json({
       books: paginatedBooks,
       total: books.length,
-      page: parseInt(page),
-      totalPages: Math.ceil(books.length / limit)
+      page,
+      totalPages: Math.ceil(books.length / limit),
     });
   } catch (error) {
+    console.error('Error fetching books:', error);
     res.status(500).json({ error: 'Failed to fetch books' });
   }
 });
@@ -51,12 +57,13 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
   try {
     const books = readBooks();
-    const book = books.find(b => b.id === req.params.id);
-    
+    const id = parseInt(req.params.id, 10);
+    const book = books.find((b) => b.id === id);
+
     if (!book) {
       return res.status(404).json({ error: 'Book not found' });
     }
-    
+
     res.json(book);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch book' });
@@ -67,7 +74,7 @@ router.get('/:id', (req, res) => {
 router.post('/', (req, res) => {
   try {
     const books = readBooks();
-    const { title, author, year, genre, available } = req.body;
+    const { title, author, year, genre, available, publisher } = req.body;
 
     // Validation
     if (!title || !author) {
@@ -83,7 +90,14 @@ router.post('/', (req, res) => {
       author,
       year: year || new Date().getFullYear(),
       genre: genre || 'Uncategorized',
-      available: available !== undefined ? available : true
+      available: available !== undefined ? available : true,
+      publisher:
+        publisher && publisher.name && publisher.location
+          ? publisher
+          : {
+              name: 'Unknown',
+              location: 'Unknown',
+            },
     };
 
     books.push(newBook);
@@ -91,6 +105,7 @@ router.post('/', (req, res) => {
 
     res.status(201).json(newBook);
   } catch (error) {
+    console.error('Error creating book:', error);
     res.status(500).json({ error: 'Failed to create book' });
   }
 });
@@ -99,24 +114,35 @@ router.post('/', (req, res) => {
 router.put('/:id', (req, res) => {
   try {
     const books = readBooks();
-    const bookIndex = books.findIndex(b => b.id === parseInt(req.params.id));
+    const id = parseInt(req.params.id, 10);
+    const bookIndex = books.findIndex((b) => b.id === id);
 
     if (bookIndex === -1) {
       return res.status(404).json({ error: 'Book not found' });
     }
 
-    const { title, author, year, genre, available } = req.body;
+    const { title, author, year, genre, available, publisher } = req.body;
+    const book = books[bookIndex];
 
-    // Update only provided fields
-    if (title) books[bookIndex].title = title;
-    if (author) books[bookIndex].author = author;
-    if (year) books[bookIndex].year = year;
-    if (genre) books[bookIndex].genre = genre;
-    if (available !== undefined) books[bookIndex].available = available;
+    if (title !== undefined) book.title = title;
+    if (author !== undefined) book.author = author;
+    if (year !== undefined) book.year = year;
+    if (genre !== undefined) book.genre = genre;
+    if (available !== undefined) book.available = available;
 
+    if (publisher && publisher.name && publisher.location) {
+      book.publisher = {
+        name: publisher.name,
+        location: publisher.location,
+      };
+    }
+
+    books[bookIndex] = book;
     writeBooks(books);
-    res.json(books[bookIndex]);
+
+    res.json(book);
   } catch (error) {
+    console.error('Error updating book:', error);
     res.status(500).json({ error: 'Failed to update book' });
   }
 });
@@ -125,7 +151,8 @@ router.put('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
   try {
     const books = readBooks();
-    const bookIndex = books.findIndex(b => b.id === parseInt(req.params.id));
+    const id = parseInt(req.params.id, 10);
+    const bookIndex = books.findIndex((b) => b.id === id);
 
     if (bookIndex === -1) {
       return res.status(404).json({ error: 'Book not found' });
@@ -136,6 +163,7 @@ router.delete('/:id', (req, res) => {
 
     res.json({ message: 'Book deleted successfully' });
   } catch (error) {
+    console.error('Error deleting book:', error);
     res.status(500).json({ error: 'Failed to delete book' });
   }
 });
@@ -144,20 +172,21 @@ router.delete('/:id', (req, res) => {
 router.patch('/:id/toggle-availability', (req, res) => {
   try {
     const books = readBooks();
-    const book = books.find(b => b.id === parseInt(req.params.id));
+    const id = parseInt(req.params.id, 10);
+    const book = books.find((b) => b.id === id);
 
     if (!book) {
       return res.status(404).json({ error: 'Book not found' });
     }
 
-    book.available = book.available;
+    book.available = !book.available; 
     writeBooks(books);
 
     res.json(book);
   } catch (error) {
+    console.error('Error toggling availability:', error);
     res.status(500).json({ error: 'Failed to toggle availability' });
   }
 });
 
 module.exports = router;
-

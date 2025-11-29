@@ -5,7 +5,8 @@ const initialFormState = {
   author: '',
   year: new Date().getFullYear(),
   genre: 'Fiction',
-  available: true
+  available: true,
+  publisher: { name: 'Unknown', location: 'Unknown' }
 };
 
 function BookForm({ book, onSubmit, onCancel }) {
@@ -14,7 +15,14 @@ function BookForm({ book, onSubmit, onCancel }) {
 
   useEffect(() => {
     if (book) {
-      setFormData(book);
+      setFormData({
+        title: book.title,
+        author: book.author,
+        year: book.year,
+        genre: book.genre,
+        available: book.available,
+        publisher: book.publisher || { name: 'Unknown', location: 'Unknown' }
+      });
     } else {
       setFormData(initialFormState);
     }
@@ -22,9 +30,22 @@ function BookForm({ book, onSubmit, onCancel }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+
+    // Handle normal fields
+    if (name !== 'publisherName' && name !== 'publisherLocation') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      }));
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      publisher: {
+        ...prev.publisher,
+        [name === 'publisherName' ? 'name' : 'location']: value
+      }
     }));
   };
 
@@ -34,7 +55,8 @@ function BookForm({ book, onSubmit, onCancel }) {
 
     const submitData = {
       ...formData,
-      year: parseInt(formData.year)
+      year: parseInt(formData.year),
+      publisher: formData.publisher
     };
 
     let success;
@@ -55,11 +77,16 @@ function BookForm({ book, onSubmit, onCancel }) {
     onCancel();
   };
 
-  const genres = ['Fiction', 'Non-Fiction', 'Mystery', 'Romance', 'Sci-Fi', 'Fantasy', 'Biography', 'History', 'Dystopian', 'Uncategorized'];
+  const genres = [
+    'Fiction', 'Non-Fiction', 'Mystery', 'Romance',
+    'Sci-Fi', 'Fantasy', 'Biography', 'History',
+    'Dystopian', 'Uncategorized'
+  ];
 
   return (
     <div className="book-form">
       <h2>{book ? 'Edit Book' : 'Add New Book'}</h2>
+
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="title">Title *</label>
@@ -106,10 +133,34 @@ function BookForm({ book, onSubmit, onCancel }) {
             value={formData.genre}
             onChange={handleChange}
           >
-            {genres.map(genre => (
+            {genres.map((genre) => (
               <option key={genre} value={genre}>{genre}</option>
             ))}
           </select>
+        </div>
+
+        {/* new Publisher Name */}
+        <div className="form-group">
+          <label htmlFor="publisherName">Publisher Name</label>
+          <input
+            type="text"
+            id="publisherName"
+            name="publisherName"
+            value={formData.publisher.name}
+            onChange={handleChange}
+          />
+        </div>
+
+        {/* new Publisher Location */}
+        <div className="form-group">
+          <label htmlFor="publisherLocation">Publisher Location</label>
+          <input
+            type="text"
+            id="publisherLocation"
+            name="publisherLocation"
+            value={formData.publisher.location}
+            onChange={handleChange}
+          />
         </div>
 
         <div className="form-group">
@@ -133,6 +184,7 @@ function BookForm({ book, onSubmit, onCancel }) {
           >
             {isSubmitting ? 'Saving...' : (book ? 'Update Book' : 'Add Book')}
           </button>
+
           {book && (
             <button 
               type="button" 
@@ -149,4 +201,3 @@ function BookForm({ book, onSubmit, onCancel }) {
 }
 
 export default BookForm;
-
